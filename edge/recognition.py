@@ -34,7 +34,7 @@ def recognize_and_encode_face(frame):
 
     face_encoding = None
     if face_location:
-        face_encoding = face_recognition.face_encodings(rgb_small_frame, [face_location])
+        face_encoding = face_recognition.face_encodings(rgb_small_frame, [face_location])[0]
     return face_location, face_encoding
 
 
@@ -53,8 +53,7 @@ def run_recognition():
         frame_count = (frame_count + 1) % PROCESS_FRAME_RATE
         if frame_count == 0:
             face_location, face_encoding = recognize_and_encode_face(frame)
-            identified, credentials = client.recognition_request(face_encoding)
-
+            credentials = client.recognition_request(face_encoding)
         if face_location:
             top, right, bottom, left = face_location
             top *= 4
@@ -76,17 +75,3 @@ def run_recognition():
     # Release handle to the webcam
     video_capture.release()
     cv2.destroyAllWindows()
-
-
-if __name__ == '__main__':
-    # run_recognition()
-
-    video_capture = cv2.VideoCapture(0)
-    ret, frame = video_capture.read()
-    cv2.imshow('Frame', frame)
-    # video_capture.release()
-    # cv2.destroyAllWindows()
-
-    location, encoding = recognize_and_encode_face(frame)
-    print(encoding)
-

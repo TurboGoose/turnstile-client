@@ -65,6 +65,7 @@ class FacesDatabase:
         return generated_id
 
     def get_all_faces(self):
+        print("Load triggered!")
         cur = self.connection.cursor()
         result_set = cur.execute("SELECT id, faceEncoding FROM employees;").fetchall()
         cur.close()
@@ -78,7 +79,7 @@ class FacesDatabase:
 
     def get_info_by_id(self, id):
         cur = self.connection.cursor()
-        info = cur.execute("SELECT name, surname FROM employees WHERE id=?;", (id, )).fetchone()
+        info = cur.execute("SELECT id, name, surname FROM employees WHERE id=?;", (id, )).fetchone()
         cur.close()
         return info
 
@@ -91,16 +92,3 @@ class FacesDatabase:
                 self.save_employee((name, surname, face_encoding))
         except FileNotFoundError:
             print(f"Image folder '{folder}' not exists")
-
-
-if __name__ == '__main__':
-    with FacesDatabase("../faces") as db:
-        ids, encodings = db.get_all_faces()
-        id = ids[0]
-        encoding = encodings[0]
-        creds = db.get_info_by_id(id)
-        print(creds)
-        print(id)
-        print(encoding)
-
-
