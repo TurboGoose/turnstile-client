@@ -5,6 +5,7 @@ import sqlite3
 import face_recognition
 import numpy as np
 
+# DATABASE = "/Users/ilakonovalov/PycharmProjects/turnstile-client/data/data.db"
 DATABASE = ":memory:"
 
 
@@ -27,56 +28,79 @@ def convert_array(text):
 sqlite3.register_converter("array", convert_array)
 
 
-def init_db(image_folder=None):
-    create_table()
-    if image_folder is not None:
-        encode_faces(image_folder)
+class FacesDatabase:
+
+    def __init__(self, image_folder=None):
+        self.connection = sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES)
+        self.create_table()
+        if image_folder is not None:
+            self.load_employees_from_folder(image_folder)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.connection.close()
+
+    def close(self):
+        self.connection.close()
+
+    def create_table(self):
+        cur = self.connection.cursor()
+        # TODO: add office attribute support
+        cur.execute("""CREATE TABLE IF NOT EXISTS employees (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name VARCHAR(50) NOT NULL, 
+            surname VARCHAR(50) NOT NULL,
+            faceEncoding array NOT NULL);""")
+        self.connection.commit()
+        cur.close()
+
+    def save_employee(self, employee_data):
+        cur = self.connection.cursor()
+        cur.execute("INSERT INTO employees (name, surname, faceEncoding) values (?, ?, ?);", employee_data)
+        generated_id = cur.lastrowid
+        self.connection.commit()
+        cur.close()
+        return generated_id
+
+    def get_all_faces(self):
+        cur = self.connection.cursor()
+        result_set = cur.execute("SELECT id, faceEncoding FROM employees;").fetchall()
+        cur.close()
+
+        ids = []
+        encodings = []
+        for id, encoding in result_set:
+            ids.append(id)
+            encodings.append(encoding)
+        return ids, encodings
+
+    def get_info_by_id(self, id):
+        cur = self.connection.cursor()
+        info = cur.execute("SELECT name, surname FROM employees WHERE id=?;", (id, )).fetchone()
+        cur.close()
+        return info
+
+    def load_employees_from_folder(self, folder):
+        try:
+            for filename in os.listdir(folder):
+                face_image = face_recognition.load_image_file(f"{folder}/{filename}")
+                face_encoding = face_recognition.face_encodings(face_image)[0]
+                name, surname = filename[:filename.rfind(".")].split("_")
+                self.save_employee((name, surname, face_encoding))
+        except FileNotFoundError:
+            print(f"Image folder '{folder}' not exists")
 
 
-def create_table():
-    con = sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES)
-    cur = con.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS faces (id INT PRIMARY KEY, name VARCHAR(50) NOT NULL,"
-                " surname VARCHAR(50) NOT NULL, faceEncoding array NOT NULL);")
-    cur.close()
-    con.close()
+if __name__ == '__main__':
+    with FacesDatabase("../faces") as db:
+        ids, encodings = db.get_all_faces()
+        id = ids[0]
+        encoding = encodings[0]
+        creds = db.get_info_by_id(id)
+        print(creds)
+        print(id)
+        print(encoding)
 
 
-def encode_faces(folder):
-    try:
-        data = []
-        for filename in os.listdir(folder):
-            face_image = face_recognition.load_image_file(f"{folder}/{filename}")
-            face_encoding = face_recognition.face_encodings(face_image)[0]
-            name, surname = filename[:filename.rfind(".")].split("_")
-            data.append((name, surname, face_encoding))
-        load_faces_from_images(data)
-    except FileNotFoundError:
-        print(f"Image folder '{folder}' not exists")
-
-
-def load_faces_from_images(data):
-    con = sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES)
-    cur = con.cursor()
-    cur.executemany("INSERT INTO faces (name, surname, faceEncoding) values (?, ?, ?)", *data)
-    con.commit()
-    cur.close()
-    con.close()
-
-
-def get_all_faces():
-    con = sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES)
-    cur = con.cursor()
-    faces = cur.execute("SELECT id, faceEncoding FROM faces").fetchall()
-    cur.close()
-    con.close()
-    return faces
-
-
-def get_info_by_id(id):
-    con = sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES)
-    cur = con.cursor()
-    info = cur.execute("SELECT name, surname FROM faces WHERE id=?", id).fetchone()
-    cur.close()
-    con.close()
-    return info
