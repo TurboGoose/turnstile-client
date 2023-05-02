@@ -83,3 +83,12 @@ class FacesDatabase:
             return info
         except psy.DatabaseError as err:
             print(err)
+
+    def truncate_table(self):
+        sql = "TRUNCATE TABLE employees;"
+        try:
+            cur = self.connection.cursor()
+            cur.execute(sql)
+            cur.close()
+        except psy.DatabaseError as err:
+            print(err)
