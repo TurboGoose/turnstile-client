@@ -9,13 +9,10 @@ url = f"http://{host}:{port}/authorize"
 
 def recognition_request(face_encoding):
     body = {"encoding": face_encoding.tolist()}
-
-    print(f"POST {url}:")
-    print(body)
+    print("POST", url)
 
     response = post(url, json=body)
-    print(f"\nResponse status {response.status_code}\nResponse body:")
-    print(response.json())
+    print(f"Response {response.status_code}: {response.json()}")
 
     if response.status_code != 200:
         return None

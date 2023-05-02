@@ -2,6 +2,7 @@ import sys
 
 import cv2
 import face_recognition
+import numpy as np
 
 import client
 
@@ -16,26 +17,17 @@ def convert_frame(frame):
     return cv2.cvtColor(cv2.resize(frame, (0, 0), fx=0.25, fy=0.25), cv2.COLOR_BGR2RGB)
 
 
-def find_first_face(face_locations):  # TODO: check for spoofing
-    face = None
-    for face_location in face_locations:
-        if face:
-            break
-        face = face_location
-    return face
-
-
 def recognize_and_encode_face(frame):
     rgb_small_frame = convert_frame(frame)
 
     face_locations = face_recognition.face_locations(rgb_small_frame)
-    face_locations.sort(key=lambda loc: area(*loc), reverse=True)
-    face_location = find_first_face(face_locations)
+    if not face_locations:
+        return None, None
 
-    face_encoding = None
-    if face_location:
-        face_encoding = face_recognition.face_encodings(rgb_small_frame, [face_location])[0]
-    return face_location, face_encoding
+    biggest_face_location = face_locations[np.argmax(map(lambda loc: area(*loc), face_locations))]
+
+    biggest_face_encoding = face_recognition.face_encodings(rgb_small_frame, (biggest_face_location, ))[0]
+    return biggest_face_location, biggest_face_encoding
 
 
 def run_recognition():
@@ -53,7 +45,10 @@ def run_recognition():
         frame_count = (frame_count + 1) % PROCESS_FRAME_RATE
         if frame_count == 0:
             face_location, face_encoding = recognize_and_encode_face(frame)
-            credentials = client.recognition_request(face_encoding)
+            if face_location:
+                credentials = client.recognition_request(face_encoding)
+
+        name = credentials["name"] + " " + credentials["surname"] if credentials else "unknown"
         if face_location:
             top, right, bottom, left = face_location
             top *= 4
@@ -62,16 +57,12 @@ def run_recognition():
             left *= 4
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
             cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
-            cv2.putText(frame, credentials["name"], (left + 6, bottom - 6),
-                        cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
+            cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
 
-        # Display the resulting image
         cv2.imshow('Face Recognition', frame)
 
-        # # Hit 'q' on the keyboard to quit!
         if cv2.waitKey(1) == ord('q'):
             break
 
-    # Release handle to the webcam
     video_capture.release()
     cv2.destroyAllWindows()
