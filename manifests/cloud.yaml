@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-side
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      side: cloud
+  template:
+    metadata:
+      labels:
+        side: cloud
+    spec:
+      containers:
+      - name: cloud
+        imagePullPolicy: IfNotPresent
+        image: turbogoosen/cloud:latest
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8000
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-password
+        - name: POSTGRES_HOST
+          value: postgres-service
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_DBNAME
+          value: employees
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-service
+spec:
+  selector:
+    side: cloud
+  ports:
+  - port: 8000
+    targetPort: 8000

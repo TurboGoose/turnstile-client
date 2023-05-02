@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-side
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      side: edge
+  template:
+    metadata:
+      labels:
+        side: edge
+    spec:
+      containers:
+      - name: edge
+        imagePullPolicy: IfNotPresent
+        image: turbogoosen/edge:latest
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        env:
+        - name: HOST_NAME
+          value: cloud-service
+        - name: POSTGRES_PORT
+          value: "8000"
