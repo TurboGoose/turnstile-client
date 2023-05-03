@@ -1,11 +1,8 @@
-import logging
-
 import numpy as np
 from fastapi import FastAPI, HTTPException, status
 
 from model import FaceSearchRequest, FaceSearchResponse
 from search import find_best_match
-
 
 app = FastAPI()
 
