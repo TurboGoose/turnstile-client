@@ -1,36 +1,18 @@
 import sys
 
 import cv2
-import face_recognition
-import numpy as np
 
-import client
+from core.processing import recognize_employee, find_biggest_face_location
+from core.client import reload_request
 
 PROCESS_FRAME_RATE = 30
-
-
-def area(top, right, bottom, left):
-    return abs(top - bottom) * abs(right - left)
 
 
 def convert_frame(frame):
     return cv2.cvtColor(cv2.resize(frame, (0, 0), fx=0.25, fy=0.25), cv2.COLOR_BGR2RGB)
 
 
-def recognize_and_encode_face(frame):
-    rgb_small_frame = convert_frame(frame)
-
-    face_locations = face_recognition.face_locations(rgb_small_frame)
-    if not face_locations:
-        return None, None
-
-    biggest_face_location = face_locations[np.argmax(map(lambda loc: area(*loc), face_locations))]
-
-    biggest_face_encoding = face_recognition.face_encodings(rgb_small_frame, (biggest_face_location, ))[0]
-    return biggest_face_location, biggest_face_encoding
-
-
-def run_recognition():
+def run():
     video_capture = cv2.VideoCapture(0)
 
     if not video_capture.isOpened():
@@ -44,9 +26,9 @@ def run_recognition():
 
         frame_count = (frame_count + 1) % PROCESS_FRAME_RATE
         if frame_count == 0:
-            face_location, face_encoding = recognize_and_encode_face(frame)
-            if face_location:
-                credentials = client.recognition_request(face_encoding)
+            converted_frame = convert_frame(frame)
+            face_location = find_biggest_face_location(converted_frame)
+            credentials = recognize_employee(frame, face_location=face_location)
 
         name = credentials["name"] + " " + credentials["surname"] if credentials else "unknown"
         if face_location:
@@ -63,6 +45,9 @@ def run_recognition():
 
         if cv2.waitKey(1) == ord('q'):
             break
+
+        if cv2.waitKey(1) == ord('r'):
+            reload_request()
 
     video_capture.release()
     cv2.destroyAllWindows()
