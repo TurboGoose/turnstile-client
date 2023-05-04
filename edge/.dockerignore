@@ -3,4 +3,4 @@ benchmark/data
 venv
 .idea
 
-test.py
+upload_face.py
