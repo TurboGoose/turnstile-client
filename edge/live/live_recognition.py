@@ -3,7 +3,6 @@ import sys
 import cv2
 
 from core.processing import recognize_employee, find_biggest_face_location
-from core.client import reload_request
 
 PROCESS_FRAME_RATE = 30
 
@@ -45,9 +44,6 @@ def run():
 
         if cv2.waitKey(1) == ord('q'):
             break
-
-        if cv2.waitKey(1) == ord('r'):
-            reload_request()
 
     video_capture.release()
     cv2.destroyAllWindows()

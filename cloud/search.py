@@ -1,8 +1,6 @@
 import face_recognition
 import numpy as np
 
-from storage import FacesDatabase
-
 
 class FaceSearcher:
     def __init__(self, db):
