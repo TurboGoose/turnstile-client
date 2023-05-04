@@ -3,7 +3,7 @@ import time
 
 import face_recognition
 
-from storage import FacesDatabase
+from benchmark.storage import FacesDatabase
 from core import processing, client
 
 
@@ -45,8 +45,8 @@ def read_employees(folder):
 
 
 def run():
-    reference = "data/reference"
-    to_recognize = "data/to_recognize"
+    reference = "benchmark/data/reference"
+    to_recognize = "benchmark/data/to_recognize"
 
     db = FacesDatabase()
 

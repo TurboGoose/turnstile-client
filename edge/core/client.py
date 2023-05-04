@@ -44,7 +44,6 @@ def save_request(name, surname, face_encoding):
     except JSONDecodeError as err:
         print(err)
 
-
 def reload_request():
     url = url_template + "/reload"
     print("GET", url)
