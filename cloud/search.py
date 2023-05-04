@@ -3,24 +3,26 @@ import numpy as np
 
 from storage import FacesDatabase
 
-db = FacesDatabase()
-known_face_ids, known_face_encodings = db.get_all_faces()
-if not len(known_face_encodings):
-    print("known_face_encodings is empty")
 
+class FaceSearcher:
+    def __init__(self, db):
+        self.db = db
+        self.known_face_ids, self.known_face_encodings = self.db.get_all_faces()
+        if not len(self.known_face_encodings):
+            print("known_face_encodings is empty")
 
-def find_best_match(face_encoding):
-    if not known_face_encodings:
-        return None
-    face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
-    best_match_index = np.argmin(face_distances)
-    best_match_face_encoding = known_face_encodings[best_match_index]
-    match = face_recognition.compare_faces([best_match_face_encoding], face_encoding, tolerance=0.5)[0]
+    def find_best_match(self, face_encoding):
+        if not self.known_face_encodings:
+            return None
+        face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
+        best_match_index = np.argmin(face_distances)
+        best_match_face_encoding = self.known_face_encodings[best_match_index]
+        match = face_recognition.compare_faces([best_match_face_encoding], face_encoding, tolerance=0.4)[0]
 
-    if not match:
-        return None
+        if not match:
+            return None
 
-    best_match_id = known_face_ids[best_match_index]
-    credentials = db.get_info_by_id(best_match_id)
-    print("Face recognized:", credentials)
-    return credentials
+        best_match_id = self.known_face_ids[best_match_index]
+        credentials = self.db.get_info_by_id(best_match_id)
+        print("Face recognized:", credentials)
+        return credentials

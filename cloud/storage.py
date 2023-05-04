@@ -7,6 +7,11 @@ import psycopg2 as psy
 class FacesDatabase:
 
     def __init__(self):
+        self.connection = None
+        self.open()
+        self.create_table()
+
+    def open(self):
         db_connect_kwargs = {
             'dbname': os.getenv('POSTGRES_DBNAME'),
             'user': os.getenv('POSTGRES_USER'),
@@ -14,17 +19,19 @@ class FacesDatabase:
             'host': os.getenv('POSTGRES_HOST'),
             'port': os.getenv('POSTGRES_PORT')
         }
-
         print(f"DB connection URL:"
               f"postgres://{db_connect_kwargs['user']}:{db_connect_kwargs['password']}"
               f"@{db_connect_kwargs['host']}:{db_connect_kwargs['port']}/{db_connect_kwargs['dbname']}")
         self.connection = psy.connect(**db_connect_kwargs)
         self.connection.set_session(autocommit=True)
 
-        self.create_table()
-
     def close(self):
         self.connection.close()
+        self.connection = None
+
+    def reload(self):
+        self.close()
+        self.open()
 
     def create_table(self):
         try:
@@ -35,6 +42,18 @@ class FacesDatabase:
                 surname VARCHAR(50) NOT NULL,
                 face_encoding BYTEA NOT NULL);""")
             cur.close()
+        except psy.DatabaseError as err:
+            print(err)
+
+    def save_employee(self, name, surname, face_encoding):
+        sql = f"INSERT INTO employees (name, surname, face_encoding) VALUES (%s, %s, %s) RETURNING id;"
+        try:
+            face_encoding = pickle.dumps(face_encoding)
+            cur = self.connection.cursor()
+            cur.execute(sql, (name, surname, face_encoding))
+            generated_id = cur.fetchone()[0]
+            cur.close()
+            return generated_id
         except psy.DatabaseError as err:
             print(err)
 
