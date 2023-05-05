@@ -3,7 +3,7 @@ import time
 
 import face_recognition
 
-from benchmark.storage import FacesDatabase
+from benchmark.storage import Database
 from core import processing, client
 
 
@@ -16,8 +16,10 @@ def load_employees(database, employees):
 
 
 def setup_database(employees_data, database):
-    database.drop_table()
-    database.create_table()
+    database.drop_attendance_table()
+    database.drop_employees_table()
+    database.create_employees_table()
+    database.create_attendance_table()
     load_employees(database, employees_data)
     client.reload_request()
 
@@ -53,7 +55,7 @@ def run():
     reference = "benchmark/data/reference"
     to_recognize = "benchmark/data/to_recognize"
 
-    db = FacesDatabase()
+    db = Database()
 
     reference_employees = read_employees(reference)
     setup_database(reference_employees, db)
