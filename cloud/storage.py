@@ -13,17 +13,16 @@ class Database:
 
     def open(self):
         db_connect_kwargs = {
-            'dbname': os.getenv('POSTGRES_DBNAME'),
-            'user': os.getenv('POSTGRES_USER'),
-            'password': os.getenv('POSTGRES_PASSWORD'),
-            'host': os.getenv('POSTGRES_HOST'),
-            'port': os.getenv('POSTGRES_PORT')
+            'user': os.getenv('POSTGRES_USER', 'postgres'),
+            'password': os.getenv('POSTGRES_PASSWORD', 'postgres'),
+            'dbname': os.getenv('POSTGRES_DBNAME', 'attendance'),
+            'host': os.getenv('POSTGRES_HOST', 'localhost'),
+            'port': os.getenv('POSTGRES_PORT', '5432'),
+            'sslmode': os.getenv('POSTGRES_SSLMODE', 'disable'),
+            'target_session_attrs': os.getenv('POSTGRES_TARGET_SESSION_ATTRS', 'read-write')
         }
-
-        print(f"DB connection URL:"
-              f"postgres://{db_connect_kwargs['user']}:{db_connect_kwargs['password']}"
-              f"@{db_connect_kwargs['host']}:{db_connect_kwargs['port']}/{db_connect_kwargs['dbname']}")
         self.connection = psy.connect(**db_connect_kwargs)
+        print("Connected to Postgres successfully")
         self.connection.set_session(autocommit=True)
 
     def close(self):

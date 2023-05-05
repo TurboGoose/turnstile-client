@@ -2,8 +2,8 @@ import os
 
 from requests import post, JSONDecodeError, get
 
-host = os.getenv("HOST_NAME")
-port = os.getenv("HOST_PORT")
+host = os.getenv("HOST_NAME", "localhost")
+port = os.getenv("HOST_PORT", "8000")
 url_template = f"http://{host}:{port}"
 
 
