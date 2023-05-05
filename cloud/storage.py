@@ -4,12 +4,12 @@ import pickle
 import psycopg2 as psy
 
 
-class FacesDatabase:
-
+class Database:
     def __init__(self):
         self.connection = None
         self.open()
-        self.create_table()
+        self.create_faces_table()
+        self.create_attendance_table()
 
     def open(self):
         db_connect_kwargs = {
@@ -19,6 +19,7 @@ class FacesDatabase:
             'host': os.getenv('POSTGRES_HOST'),
             'port': os.getenv('POSTGRES_PORT')
         }
+
         print(f"DB connection URL:"
               f"postgres://{db_connect_kwargs['user']}:{db_connect_kwargs['password']}"
               f"@{db_connect_kwargs['host']}:{db_connect_kwargs['port']}/{db_connect_kwargs['dbname']}")
@@ -33,7 +34,7 @@ class FacesDatabase:
         self.close()
         self.open()
 
-    def create_table(self):
+    def create_faces_table(self):
         try:
             cur = self.connection.cursor()
             cur.execute("""CREATE TABLE IF NOT EXISTS employees (
@@ -73,7 +74,7 @@ class FacesDatabase:
         except psy.DatabaseError as err:
             print(err)
 
-    def get_info_by_id(self, id):
+    def get_employee_credentials_by_id(self, id):
         sql = "SELECT id, name, surname FROM employees WHERE id = %s;"
         try:
             cur = self.connection.cursor()
@@ -81,5 +82,26 @@ class FacesDatabase:
             info = cur.fetchone()
             cur.close()
             return info
+        except psy.DatabaseError as err:
+            print(err)
+
+    def create_attendance_table(self):
+        sql = """CREATE TABLE IF NOT EXISTS attendance (
+                id SERIAL PRIMARY KEY,
+                employee_id INT REFERENCES employees(id), 
+                authorized_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"""
+        try:
+            cur = self.connection.cursor()
+            cur.execute(sql)
+            cur.close()
+        except psy.DatabaseError as err:
+            print(err)
+
+    def save_attendance_entry(self, employee_id):
+        sql = f"INSERT INTO attendance (employee_id) VALUES (%s);"
+        try:
+            cur = self.connection.cursor()
+            cur.execute(sql, (employee_id,))
+            cur.close()
         except psy.DatabaseError as err:
             print(err)

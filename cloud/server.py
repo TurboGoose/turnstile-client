@@ -3,10 +3,10 @@ from fastapi import FastAPI, HTTPException, status
 
 from model import FaceSearchRequest, FaceSearchResponse, FaceSaveRequest, FaceSaveResponse
 from search import FaceSearcher
-from storage import FacesDatabase
+from storage import Database
 
 app = FastAPI()
-db = FacesDatabase()
+db = Database()
 searcher = FaceSearcher(db)
 
 
@@ -16,6 +16,7 @@ async def identify(request: FaceSearchRequest):
     credentials = searcher.find_best_match(face_encoding)
     if credentials:
         id, name, surname = credentials
+        db.save_attendance_entry(id)
         return FaceSearchResponse(id=id, name=name, surname=surname)
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,

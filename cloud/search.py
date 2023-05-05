@@ -21,7 +21,7 @@ class FaceSearcher:
             return None
 
         best_match_id = self.known_face_ids[best_match_index]
-        credentials = self.db.get_info_by_id(best_match_id)
+        credentials = self.db.get_employee_credentials_by_id(best_match_id)
         print("Face recognized:", credentials)
         return credentials
 
