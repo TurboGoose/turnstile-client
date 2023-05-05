@@ -23,15 +23,20 @@ def setup_database(employees_data, database):
 
 
 def make_requests(employees_data):
+    fails = 0
     for name, surname, image_path in employees_data:
         frame = face_recognition.load_image_file(image_path)
         credentials = processing.recognize_employee(frame)
         if not credentials:
+            fails += 1
             print("Not recognized")
             continue
-        assert credentials["name"] == name
-        assert credentials["surname"] == surname
-        print(f'Employee "{name} {surname}" recognized\n')
+        if credentials["name"] != name or credentials["surname"] != surname:
+            print("Not matched")
+            fails += 1
+        else:
+            print(f'Employee "{name} {surname}" recognized\n')
+    return fails
 
 
 def read_employees(folder):
@@ -56,6 +61,7 @@ def run():
 
     employees_to_recognize = read_employees(to_recognize)
     start = time.time()
-    make_requests(employees_to_recognize)
+    fails = make_requests(employees_to_recognize)
     print("Elapsed time:", time.time() - start)
+    print(f"Total fails: {fails}/{len(employees_to_recognize)}")
     db.close()

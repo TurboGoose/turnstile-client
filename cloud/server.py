@@ -40,3 +40,4 @@ async def save(request: FaceSaveRequest):
 @app.get("/reload", status_code=200)
 async def reload():
     db.reload()
+    searcher.reload()

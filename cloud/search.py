@@ -15,7 +15,7 @@ class FaceSearcher:
         face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
         best_match_index = np.argmin(face_distances)
         best_match_face_encoding = self.known_face_encodings[best_match_index]
-        match = face_recognition.compare_faces([best_match_face_encoding], face_encoding, tolerance=0.4)[0]
+        match = face_recognition.compare_faces([best_match_face_encoding], face_encoding, tolerance=0.5)[0]
 
         if not match:
             return None
@@ -24,3 +24,6 @@ class FaceSearcher:
         credentials = self.db.get_info_by_id(best_match_id)
         print("Face recognized:", credentials)
         return credentials
+
+    def reload(self):
+        self.known_face_ids, self.known_face_encodings = self.db.get_all_faces()
