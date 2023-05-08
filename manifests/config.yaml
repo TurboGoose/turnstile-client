@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: postgres-config
 data:
-  postgres-port: 6432
-  postgres-dbname: attendance
+  postgres-port: "6432"
+  postgres-dbname: "attendance"

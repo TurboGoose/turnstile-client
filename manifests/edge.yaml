@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: edge
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         image: turbogoosen/edge:latest
         resources:
           limits:

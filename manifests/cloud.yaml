@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: cloud
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         image: turbogoosen/cloud:latest
         resources:
           limits:
