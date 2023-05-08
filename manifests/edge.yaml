@@ -23,5 +23,38 @@ spec:
         env:
         - name: HOST_NAME
           value: cloud-service
-        - name: POSTGRES_PORT
+        - name: HOST_PORT
           value: "8000"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-password
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-host
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: postgres-port
+        - name: POSTGRES_DBNAME
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: postgres-dbname
+        volumeMounts:
+          - mountPath: /app/edge/benchmark/data
+            name: dataset-volume
+      volumes:
+      - name: dataset-volume
+        hostPath:
+          path: "~/dataset"
+          type: Directory

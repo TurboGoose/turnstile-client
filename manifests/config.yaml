@@ -1,10 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: pg-init-script
+  name: postgres-config
 data:
-  CreateDB.sql: |-
-    CREATE TABLE text (
-        id serial PRIMARY KEY,
-        text VARCHAR ( 100 ) UNIQUE NOT NULL
-    );
+  postgres-port: 6432
+  postgres-dbname: attendance

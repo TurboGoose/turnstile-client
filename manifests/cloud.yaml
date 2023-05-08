@@ -34,11 +34,20 @@ spec:
               name: postgres-secret
               key: postgres-password
         - name: POSTGRES_HOST
-          value: postgres-service
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-host
         - name: POSTGRES_PORT
-          value: "5432"
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: postgres-port
         - name: POSTGRES_DBNAME
-          value: employees
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: postgres-dbname
 ---
 apiVersion: v1
 kind: Service
