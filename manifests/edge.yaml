@@ -22,7 +22,7 @@ spec:
             cpu: "500m"
         env:
         - name: HOST_NAME
-          value: cloud-service
+          value: "cloud-service.default.svc.cluster.local"
         - name: HOST_PORT
           value: "8000"
         - name: POSTGRES_USER
