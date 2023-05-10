@@ -25,20 +25,13 @@ def setup_database(employees_data, database):
 
 
 def make_requests(employees_data):
-    fails = 0
+    times = []
     for name, surname, image_path in employees_data:
         frame = face_recognition.load_image_file(image_path)
-        credentials = processing.recognize_employee(frame)
-        if not credentials:
-            fails += 1
-            print("Not recognized")
-            continue
-        if credentials["name"] != name or credentials["surname"] != surname:
-            print("Not matched")
-            fails += 1
-        else:
-            print(f'Employee "{name} {surname}" recognized\n')
-    return fails
+        start = time.time()
+        processing.recognize_employee(frame)
+        times.append(time.time() - start)
+    return times
 
 
 def read_employees(folder):
@@ -54,16 +47,20 @@ def read_employees(folder):
 def run():
     reference = "benchmark/data/reference"
     to_recognize = "benchmark/data/to_recognize"
-
-    db = Database()
+    num_runs = 10
 
     reference_employees = read_employees(reference)
+    db = Database()
     setup_database(reference_employees, db)
     print("Database set up")
+    db.close()
 
     employees_to_recognize = read_employees(to_recognize)
-    start = time.time()
-    fails = make_requests(employees_to_recognize)
-    print("Elapsed time:", time.time() - start)
-    print(f"Total fails: {fails}/{len(employees_to_recognize)}")
-    db.close()
+    avg_times_per_run = []
+    for i in range(num_runs):
+        time_per_request = make_requests(employees_to_recognize)
+        avg_times_per_run.append(sum(time_per_request) / len(time_per_request))
+
+    for i in range(len(avg_times_per_run)):
+        print(f"Average time per request in run {i + 1}:", avg_times_per_run[i])
+    print("Total average time for all runs:", sum(avg_times_per_run) / num_runs)
