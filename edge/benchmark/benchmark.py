@@ -1,8 +1,10 @@
 import os
+import pickle
 import time
 
 import face_recognition
 
+from Profiler import Profiler
 from benchmark.storage import Database
 from core import processing, client
 
@@ -45,22 +47,26 @@ def read_employees(folder):
 
 
 def run():
-    reference = "benchmark/data/reference"
-    to_recognize = "benchmark/data/to_recognize"
     num_runs = 10
+    output_filename = f"results{num_runs}.pickle"
+    reference_folder = "benchmark/data/reference"
+    to_recognize_folder = "benchmark/data/to_recognize"
 
-    reference_employees = read_employees(reference)
+    reference_employees = read_employees(reference_folder)
     db = Database()
     setup_database(reference_employees, db)
-    print("Database set up")
     db.close()
 
-    employees_to_recognize = read_employees(to_recognize)
-    avg_times_per_run = []
-    for i in range(num_runs):
-        time_per_request = make_requests(employees_to_recognize)
-        avg_times_per_run.append(sum(time_per_request) / len(time_per_request))
+    employees_to_recognize = read_employees(to_recognize_folder)
 
-    for i in range(len(avg_times_per_run)):
-        print(f"Average time per request in run {i + 1}:", avg_times_per_run[i])
-    print("Total average time for all runs:", sum(avg_times_per_run) / num_runs)
+    if os.path.exists(output_filename):
+        os.remove(output_filename)
+
+    with open(output_filename, "a+b") as outfile:
+        for i in range(num_runs):
+            profiler = Profiler()
+            profiler.start()
+            request_times = make_requests(employees_to_recognize)
+            profiler.stop()
+            cpu_usage, mem_usage = profiler.get_results()
+            pickle.dump((request_times, cpu_usage, mem_usage), outfile)
